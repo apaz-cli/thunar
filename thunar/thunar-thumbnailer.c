@@ -1114,19 +1114,32 @@ thunar_thumbnailer_queue_file (ThunarThumbnailer  *thumbnailer,
       job->files = g_list_append (job->files, g_object_ref (file));
       job->thumbnail_size = size;
 
-      /* queue a thumbnail request for the URIs from the wait queue */
-      /* compute the next request ID, making sure it's never 0 */
-      request_no = thumbnailer->last_request + 1;
-      request_no = MAX (request_no, 1);
+      /* check if parallel mode is enabled */
+      gboolean parallel_mode = FALSE;
+      g_object_get (G_OBJECT (thunar_preferences_get ()), "misc-thumbnail-parallel-mode", &parallel_mode, NULL);
 
-      /* remember the ID for the next request */
-      thumbnailer->last_request = request_no;
+      if (parallel_mode) {
+        /* queue immediately without timeout */
+        request_no = thumbnailer->last_request + 1;
+        request_no = MAX (request_no, 1);
+        thumbnailer->last_request = request_no;
+        job->request = request_no;
+    
+        if (thunar_thumbnailer_begin_job (thumbnailer, job)) {
+          thumbnailer->jobs = g_slist_prepend (thumbnailer->jobs, job);
+        } else {
+          thunar_thumbnailer_free_job (job);
+        }
+      } else {
+        /* queue with timeout as before */
+        request_no = thumbnailer->last_request + 1;
+        request_no = MAX (request_no, 1);
+        thumbnailer->last_request = request_no;
+        job->request = request_no;
 
-      /* save the request number */
-      job->request = request_no;
-
-      thumbnailer->jobs_to_queue[size] = job;
-      thumbnailer->jobs_to_queue_source_id[size] = g_timeout_add (100, thunar_thumbnailer_queue_job_after_timeout, job);
+        thumbnailer->jobs_to_queue[size] = job;
+        thumbnailer->jobs_to_queue_source_id[size] = g_timeout_add (100, thunar_thumbnailer_queue_job_after_timeout, job);
+      }
     }
   else
     {

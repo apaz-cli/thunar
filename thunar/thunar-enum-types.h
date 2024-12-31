@@ -195,6 +195,20 @@ typedef enum
 GType
 thunar_thumbnail_mode_get_type (void) G_GNUC_CONST;
 
+/**
+ * ThunarThumbnailParallelMode:
+ * @THUNAR_THUMBNAIL_PARALLEL_NEVER      : never generate thumbnails in parallel
+ * @THUNAR_THUMBNAIL_PARALLEL_ALWAYS     : always generate thumbnails in parallel
+ **/
+typedef enum
+{
+  THUNAR_THUMBNAIL_PARALLEL_NEVER,
+  THUNAR_THUMBNAIL_PARALLEL_ALWAYS
+} ThunarThumbnailParallelMode;
+
+GType
+thunar_thumbnail_parallel_mode_get_type (void) G_GNUC_CONST;
+
 
 #define THUNAR_TYPE_THUMBNAIL_SIZE (thunar_thumbnail_size_get_type ())
 
